@@ -32,38 +32,37 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 ---
 
 ## 🏗 System Architecture & End-to-End Pipeline
-```mermaid
-graph TD
-    %% Styling
-    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
-    classDef core fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
-    classDef sub fill:#334155,stroke:#60a5fa,stroke-width:1px,color:#f8fafc;
-    classDef hardware fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
-
-    Client[API Server <br/> nexuscache/server]:::client -->|Async Stream / Request Queue| Core[NexusCache Serving Core]:::core
-
-    subgraph Core ["NexusCache Serving Core"]
-        direction TB
-        Analytics[Analytical Engine <br/> VRAM Saturation & Queue Models]:::sub
-        Scheduler[Ray Dynamic Scheduler <br/> Ray Actor Pool & Pipeline Manager]:::sub
-    end
-
-    Core -->|C++ ABI / PyBind11| CppLayer[C++/CUDA Native Extensions <br/> Block Manager, Page Tables & CUDA Kernels]:::sub
-    
-    CppLayer -->|Direct GPU Memory Access| HW[NVIDIA GPU VRAM & Hardware]:::hardware
----
-
-## 📊 Performance & A/B Benchmark Results
-
-Evaluated under concurrent production workloads (**32 active client requests**, trace distributions modeled from real-world query profiles):
-
-| Performance Metric | Static Contiguous Memory | NexusCache Engine | Net Advantage |
-| :--- | :--- | :--- | :--- |
-| **Max Batch Capacity (10GB VRAM)** | $1\times$ Baseline | **$2.4\times$ Larger** | **+140% Capacity** |
-| **Sustained GPU Utilization** | ~48% | **92.0%** | **Near-Optimal Compute** |
-| **p95 Response Latency** | 120ms+ | **< 35 ms** | **-70.8% Latency** |
-| **Achieved Token Throughput** | 1,250 tokens/s | **2,334.4 tokens/s** | **+86.7% Throughput** |
-| **Request Drop Rate (Peak Load)** | 14.2% | **0.0% (100/100)** | **Zero Dropped Requests** |
++---------------------------------------+
+|    API Server (nexuscache/server)    |
++---------------------------------------+
+                    |
+        (Async Stream / Request Queue)
+                    v
+                    +----------------------------------------------------------------------------------------------------+
+|                                    NexusCache Serving Core                                         |
+|                                                                                                    |
+|   +--------------------------------+                  +----------------------------------------+   |
+|   | Analytical Engine (Analytics)  |                  | Ray Dynamic Scheduler & Worker         |   |
+|   | • VRAM Saturation Model        |                  | • Request Queue & Pipeline Manager     |   |
+|   | • Queue & Workload Modeling    |                  | • Dynamic Ray Actor Pool               |   |
+|   | • A/B Testing & Evaluator      |                  | • Metrics Engine                       |   |
+|   +--------------------------------+                  +----------------------------------------+   |
+|                                                                    |                               |
+|                                                         (C++ ABI / PyBind11)                       |
+|                                                                    v                               |
+|   +--------------------------------------------------------------------------------------------+   |
+|   | C++/CUDA Native Extensions (csrc)                                                          |   |
+|   | • Block Manager & Virtual Page Table (block_manager.cpp, page_table.cpp)              |   |
+|   | • Pinned Host Memory Allocator (pinned_memory.cpp)                                       |   |
+|   | • CUDA Kernels (paged_attention_kernel.cu, memory_kernels.cu)                           |   |
+|   +--------------------------------------------------------------------------------------------+   |
++----------------------------------------------------------------------------------------------------+
+|
+(Direct GPU Memory Access)
+v
++---------------------------------------+
+|       NVIDIA GPU VRAM & Hardware      |
++---------------------------------------+
 
 ---
 
