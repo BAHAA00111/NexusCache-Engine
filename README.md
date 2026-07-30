@@ -32,45 +32,55 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 ---
 
 ## 🏗 System Architecture & End-to-End Pipeline
-┌─────────────────────────────────────┐
-│            API Server               │
-│        nexuscache/server            │
-└─────────────────────────────────────┘
-                 │
-                 ▼
-      Async Stream / Request Queue
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│     NexusCache Serving Core         │
-├─────────────────────────────────────┤
-│                                     │
-│  Inference Engine                   │
-│                                     │
-│  Ray Scheduler                      │
-│   • Request Queue                   │
-│   • Pipeline Manager                │
-│   • Dynamic Ray Actors              │
-│   • Metrics                         │
-│                                     │
-│  Analytics                          │
-│   • VRAM Saturation                 │
-│   • Queue Modeling                  │
-│   • A/B Evaluation                  │
-│                                     │
-├─────────────────────────────────────┤
-│        PyBind11 / C++ ABI           │
-├─────────────────────────────────────┤
-│     Native Runtime (C++/CUDA)       │
-│   • Block Manager                   │
-│   • Virtual Page Table              │
-│   • Pinned Memory Allocator         │
-│   • CUDA Memory Kernels             │
-│   • Paged Attention Kernels         │
-└─────────────────────────────────────┘
-                 │
-                 ▼
-      NVIDIA GPU Hardware / VRAM
+
+```mermaid
+flowchart TB
+
+A[API Server<br/>nexuscache/server]
+
+A -->|Async Stream / Request Queue| B
+
+subgraph B["NexusCache Serving Core"]
+
+direction TB
+
+subgraph C["Serving Engine"]
+    C1[Inference Engine]
+end
+
+subgraph D["Ray Scheduler"]
+    D1[Request Queue]
+    D2[Pipeline Manager]
+    D3[Dynamic Ray Actors]
+    D4[Metrics Engine]
+end
+
+subgraph E["Analytics"]
+    E1[VRAM Saturation]
+    E2[Queue Modeling]
+    E3[A/B Evaluation]
+end
+
+C --> F
+D --> F
+E --> F
+
+F["PyBind11 / C++ ABI"]
+
+F --> G
+
+subgraph G["Native Runtime (C++ / CUDA)"]
+    G1[Block Manager]
+    G2[Virtual Page Table]
+    G3[Pinned Memory Allocator]
+    G4[CUDA Memory Kernels]
+    G5[Paged Attention Kernels]
+end
+
+end
+
+G --> H["NVIDIA GPU VRAM"]
+```
 
 ---
 
