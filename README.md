@@ -33,11 +33,11 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 
 ## 🏗 System Architecture & End-to-End Pipeline
 +---------------------------------------+
-|    API Server (nexuscache/server)    |
-+---------------------------------------+
-                    |
-        (Async Stream / Request Queue)
-                    v
+                          |    API Server (nexuscache/server)    |
+                          +---------------------------------------+
+                                              |
+                               (Async Stream / Request Queue)
+                                              v  
                     +----------------------------------------------------------------------------------------------------+
 |                                    NexusCache Serving Core                                         |
 |                                                                                                    |
