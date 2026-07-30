@@ -1,0 +1,37 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+
+# Environments
+torch_env/
+.venv/
+env/
+venv/
+
+# C++ & CUDA Build Artifacts
+csrc/build/
+*.o
+*.obj
+*.out
+*.a
+.cmake/
+CMakeCache.txt
+CMakeFiles/
+
+# VS Code & IDEs
+.vscode/
+.idea/
+
+# Benchmark Results & Logs
+benchmarks/results/
+*.csv
+*.log
+
+# Environment Variables & Secrets
+.env

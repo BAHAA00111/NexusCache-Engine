@@ -1,0 +1,164 @@
+[build-system]
+requires = [
+    "setuptools>=68.0.0",
+    "wheel",
+    "torch>=2.0.0",
+    "pybind11>=2.10.0"
+]
+build-backend = "setuptools.build_meta"
+
+# 1. PEP 621 Core Project Metadata
+[project]
+name = "nexuscache"
+version = "0.1.0"
+description = "High-Throughput Async LLM Inference Server & Dynamic Paged KV-Cache Engine in C++/CUDA and Ray"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "NexusCache Systems Engineering Team", email = "engineering@nexuscache.ai" }
+]
+keywords = [
+    "llm-inference",
+    "paged-kv-cache",
+    "cuda",
+    "ray",
+    "vllm",
+    "systems-programming",
+    "deep-learning",
+    "queueing-theory"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+]
+
+# Core dependencies required to execute the engine and server
+dependencies = [
+    "torch>=2.0.0",
+    "ray[default]>=2.9.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "pydantic>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "prometheus-client>=0.17.0",
+    "aiohttp>=3.8.0",
+]
+
+# Optional dependency groups for benchmarking, development, and modeling
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "black>=23.7.0",
+    "types-requests",
+]
+bench = [
+    "locust>=2.15.0",
+    "matplotlib>=3.7.0",
+    "pandas>=2.0.0",
+    "polars>=0.18.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/BAHAA00111/NexusCache-Engine"
+Documentation = "https://github.com/BAHAA00111/NexusCache-Engine/tree/main/docs"
+Repository = "https://github.com/BAHAA00111/NexusCache-Engine.git"
+Issues = "https://github.com/BAHAA00111/NexusCache-Engine/issues"
+
+# CLI entry points for starting the Ray inference server or analytics scripts
+[project.scripts]
+nexuscache-server = "nexuscache.server.api_server:main"
+nexuscache-bench = "benchmarks.load_generator:main"
+
+
+# 2. Tooling & Linting Configurations
+[tool.setuptools]
+packages = ["nexuscache"]
+
+[tool.setuptools.package-data]
+nexuscache = ["*.so", "*.pyd", "_C*.so"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort imports
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501", # Ignore line length violations (handled by formatter)
+    "B008", # Function call in argument defaults (required for FastAPI Depends)
+]
+
+[tool.ruff.isort]
+known-first-party = ["nexuscache"]
+
+[tool.ruff.lint]
+ignore = [
+    "I",     
+    "UP",   
+    "E501",
+    "B008",
+]
+
+# Pytest Configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests/python"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+addopts = "-v --strict-markers --tb=short --cov=nexuscache --cov-report=term-missing"
+markers = [
+    "gpu: Marks tests requiring an active CUDA GPU (RTX 3080)",
+    "slow: Marks heavy benchmark or queueing simulation tests",
+]
+
+# Mypy Static Type Checking 
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "torch.*",
+    "ray.*",
+    "scipy.*",
+    "prometheus_client.*"
+]
+ignore_missing_imports = true
+
+#Coverage.py Configuration
+[tool.coverage.run]
+source = ["nexuscache"]
+omit = [
+    "nexuscache/_C*", # Native C++ extensions are measured via C++ tools
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

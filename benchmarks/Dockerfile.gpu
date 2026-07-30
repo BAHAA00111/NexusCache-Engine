@@ -1,0 +1,45 @@
+FROM rayproject/ray:2.35.0-py310-gpu
+
+USER root
+
+# Prevent non-interactive apt crashes & setup Python env
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PATH="/home/ray/anaconda3/bin:$PATH" \
+    PYTHONPATH="/workspace:$PYTHONPATH"
+
+WORKDIR /workspace
+
+# Install minimal OS utilities for network benchmarks and health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    git \
+    build-essential \
+    ninja-build \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency list first to utilize Docker layer caching
+COPY requirements.txt /workspace/requirements.txt
+
+# Install core runtime and load-generator dependencies (FastAPI, Prometheus, Locust/Aiohttp)
+RUN pip install --no-cache-dir -r /workspace/requirements.txt
+
+# Copy entire repository source code into container workspace
+COPY . /workspace
+
+# Environment flags: Prevents PyTorch CUDA checks from breaking during GPU-less image build stage
+ENV NO_CUDA_EXT=1 \
+    FORCE_CUDA=0 \
+    TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
+
+# Install NexusCache package safely
+RUN pip install --no-deps --no-build-isolation -e . --config-settings editable_mode=compat
+
+# Expose standard serving, metrics, and Ray cluster ports
+EXPOSE 6379 8265 10001 8000 9090
+
+# Default entrypoint for benchmark runners
+CMD ["python3", "-m", "nexuscache.benchmark.bench_runner"]
