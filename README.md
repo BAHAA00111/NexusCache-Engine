@@ -33,38 +33,38 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 
 ## 🏗 System Architecture & End-to-End Pipeline
 
-+---------------------------------------+
-|    API Server (nexuscache/server)    | +---------------------------------------+
-|
-(Async Stream / Request Queue)
-                v
+                          +---------------------------------------+
+                          |    API Server (nexuscache/server)    |
+                          +---------------------------------------+
+                                              |
+                               (Async Stream / Request Queue)
+                                              v
 
-+--------------------------------------------------------------------------+
-|        NexusCache Serving Core |
++----------------------------------------------------------------------------------------------------+
+|                                    NexusCache Serving Core                                         |
 |                                                                                                    |
-|   +--------------------------------+                  +----------------------------------------+ |
-|   | Analytical Engine (Analytics) || Ray Dynamic Scheduler & Worker         |   |
-|   | • VRAM Saturation Model  || • Request Queue & Pipeline Manager     |   |
-|   | • Queue & Workload Modeling  || • Dynamic Ray Actor Pool               |   |
-| • A/B Testing & Evaluator || • Metrics Engine|
-|   +--------------------------------+                  +----------------------------------------+
-|
-|(C++ ABI / PyBind11)|
-|
+|   +--------------------------------+                  +----------------------------------------+   |
+|   | Analytical Engine (Analytics)  |                  | Ray Dynamic Scheduler & Worker         |   |
+|   | • VRAM Saturation Model        |                  | • Request Queue & Pipeline Manager     |   |
+|   | • Queue & Workload Modeling    |                  | • Dynamic Ray Actor Pool               |   |
+|   | • A/B Testing & Evaluator      |                  | • Metrics Engine                       |   |
+|   +--------------------------------+                  +----------------------------------------+   |
+|                                                                    |                               |
+|                                                         (C++ ABI / PyBind11)                       |
+|                                                                    v                               |
 |   +--------------------------------------------------------------------------------------------+   |
-|   | C++/CUDA Native Extensions (csrc) |
-|   |• Block Manager & Virtual Page Table(block_manager.cpp, page_table.cpp)
-|   | • Pinned Host Memory Allocator (pinned_memory.cpp) ||
-|   | • CUDA Kernels (paged_attention_kernel.cu, memory_kernels.cu) ||
-|  +-------------------------------------------------------------------+  
-+-----------------------------------------------------------------------+
+|   | C++/CUDA Native Extensions (csrc)                                                              |
+|   | • Block Manager & Virtual Page Table (block_manager.cpp, page_table.cpp)                       |
+|   | • Pinned Host Memory Allocator (pinned_memory.cpp)                                             |
+|   | • CUDA Kernels (paged_attention_kernel.cu, memory_kernels.cu)                                  |
+|   +--------------------------------------------------------------------------------------------+   |
++----------------------------------------------------------------------------------------------------+
 |
 (Direct GPU Memory Access)
 v
 +---------------------------------------+
 |       NVIDIA GPU VRAM & Hardware      |
 +---------------------------------------+
-
 ---
 
 ## 📊 Performance & A/B Benchmark Results
