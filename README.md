@@ -32,37 +32,47 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 ---
 
 ## 🏗 System Architecture & End-to-End Pipeline
-                          +---------------------------------------+
-                          |    API Server (nexuscache/server)    |
-                          +---------------------------------------+
-                                              |
-                               (Async Stream / Request Queue)
-                                              v  
-                    +----------------------------------------------------------------------------------------------------+
-|                                    NexusCache Serving Core                                         |
-|                                                                                                    |
-|   +--------------------------------+                  +----------------------------------------+   |
-|   | Analytical Engine (Analytics)  |                  | Ray Dynamic Scheduler & Worker         |   |
-|   | • VRAM Saturation Model        |                  | • Request Queue & Pipeline Manager     |   |
-|   | • Queue & Workload Modeling    |                  | • Dynamic Ray Actor Pool               |   |
-|   | • A/B Testing & Evaluator      |                  | • Metrics Engine                       |   |
-|   +--------------------------------+                  +----------------------------------------+   |
-|                                                                    |                               |
-|                                                         (C++ ABI / PyBind11)                       |
-|                                                                    v                               |
-|   +--------------------------------------------------------------------------------------------+   |
-|   | C++/CUDA Native Extensions (csrc)                                                          |   |
-|   | • Block Manager & Virtual Page Table (block_manager.cpp, page_table.cpp)              |   |
-|   | • Pinned Host Memory Allocator (pinned_memory.cpp)                                       |   |
-|   | • CUDA Kernels (paged_attention_kernel.cu, memory_kernels.cu)                           |   |
-|   +--------------------------------------------------------------------------------------------+   |
-+----------------------------------------------------------------------------------------------------+
-|
-(Direct GPU Memory Access)
-v
-+---------------------------------------+
-|       NVIDIA GPU VRAM & Hardware      |
-+---------------------------------------+
+                                 +----------------------------------+
+                                 |          API Server              |
+                                 |      (nexuscache/server)         |
+                                 +----------------------------------+
+                                               │
+                               Async Stream / Request Queue
+                                               │
+                                               ▼
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                            NexusCache Serving Core                                        │
+│                                                                                           │
+│  ┌──────────────────────────────┐        ┌───────────────────────────────────────────┐    │
+│  │     Analytics Engine         │        │     Ray Scheduler & Worker Pool           │    │
+│  │                              │        │                                           │    │
+│  │ • VRAM Saturation Model       │        │ • Request Queue                           │    │
+│  │ • Queue Modeling             │        │ • Pipeline Manager                        │    │
+│  │ • A/B Evaluation             │        │ • Dynamic Ray Actor Pool                  │    │
+│  └──────────────────────────────┘        │ • Metrics Engine                          │    │
+│                                          └───────────────────────────────────────────┘    │
+│                                                        │                                  │
+│                                          PyBind11 / C++ ABI                              │
+│                                                        │                                  │
+│                                                        ▼                                  │
+│ ┌───────────────────────────────────────────────────────────────────────────────────────┐ │
+│ │                   Native Runtime (C++ / CUDA)                                          │ │
+│ │                                                                                       │ │
+│ │ • Block Manager                                                                       │ │
+│ │ • Virtual Page Table                                                                  │ │
+│ │ • Pinned Memory Allocator                                                             │ │
+│ │ • CUDA Memory Kernels                                                                 │ │
+│ │ • Paged Attention Kernels                                                             │ │
+│ └───────────────────────────────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
+                                               │
+                                  Direct GPU Memory Access
+                                               │
+                                               ▼
+                                 +----------------------------------+
+                                 |      NVIDIA GPU Hardware         |
+                                 |             VRAM                 |
+                                 +----------------------------------+
 
 ---
 
