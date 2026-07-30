@@ -32,39 +32,25 @@ NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by 
 ---
 
 ## 🏗 System Architecture & End-to-End Pipeline
+```mermaid
+graph TD
+    %% Styling
+    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef core fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+    classDef sub fill:#334155,stroke:#60a5fa,stroke-width:1px,color:#f8fafc;
+    classDef hardware fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
 
-                          +---------------------------------------+
-                          |    API Server (nexuscache/server)    |
-                          +---------------------------------------+
-                                              |
-                               (Async Stream / Request Queue)
-                                              v
+    Client[API Server <br/> nexuscache/server]:::client -->|Async Stream / Request Queue| Core[NexusCache Serving Core]:::core
 
-+----------------------------------------------------------------------------------------------------+
-|                                    NexusCache Serving Core                                         |
-|                                                                                                    |
-|   +--------------------------------+                  +----------------------------------------+   |
-|   | Analytical Engine (Analytics)  |                  | Ray Dynamic Scheduler & Worker         |   |
-|   | • VRAM Saturation Model        |                  | • Request Queue & Pipeline Manager     |   |
-|   | • Queue & Workload Modeling    |                  | • Dynamic Ray Actor Pool               |   |
-|   | • A/B Testing & Evaluator      |                  | • Metrics Engine                       |   |
-|   +--------------------------------+                  +----------------------------------------+   |
-|                                                                    |                               |
-|                                                         (C++ ABI / PyBind11)                       |
-|                                                                    v                               |
-|   +--------------------------------------------------------------------------------------------+   |
-|   | C++/CUDA Native Extensions (csrc)                                                              |
-|   | • Block Manager & Virtual Page Table (block_manager.cpp, page_table.cpp)                       |
-|   | • Pinned Host Memory Allocator (pinned_memory.cpp)                                             |
-|   | • CUDA Kernels (paged_attention_kernel.cu, memory_kernels.cu)                                  |
-|   +--------------------------------------------------------------------------------------------+   |
-+----------------------------------------------------------------------------------------------------+
-|
-(Direct GPU Memory Access)
-v
-+---------------------------------------+
-|       NVIDIA GPU VRAM & Hardware      |
-+---------------------------------------+
+    subgraph Core ["NexusCache Serving Core"]
+        direction TB
+        Analytics[Analytical Engine <br/> VRAM Saturation & Queue Models]:::sub
+        Scheduler[Ray Dynamic Scheduler <br/> Ray Actor Pool & Pipeline Manager]:::sub
+    end
+
+    Core -->|C++ ABI / PyBind11| CppLayer[C++/CUDA Native Extensions <br/> Block Manager, Page Tables & CUDA Kernels]:::sub
+    
+    CppLayer -->|Direct GPU Memory Access| HW[NVIDIA GPU VRAM & Hardware]:::hardware
 ---
 
 ## 📊 Performance & A/B Benchmark Results
