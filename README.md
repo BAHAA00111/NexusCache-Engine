@@ -1,90 +1,233 @@
+<div align="center">
+
 # ⚡ NexusCache Engine
 
-> **Sub-Millisecond Dynamic Paged KV-Cache, Async Ray Scheduler & Analytical Workload Engine for High-Throughput LLM Serving**
+### Production-Ready Dynamic Paged KV-Cache Runtime for High-Throughput LLM Serving
 
-[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg?style=flat-square&logo=cplusplus)](https://en.cppreference.com/w/cpp/17)
-[![CUDA](https://img.shields.io/badge/CUDA-12.x%2F13.x-green.svg?style=flat-square&logo=nvidia)](https://developer.nvidia.com/cuda-toolkit)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg?style=flat-square&logo=pytorch)](https://pytorch.org/)
-[![Ray](https://img.shields.io/badge/Ray-Core-0284c7.svg?style=flat-square&logo=ray)](https://www.ray.io/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ed.svg?style=flat-square&logo=docker)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
+A high-performance LLM serving infrastructure inspired by **vLLM**, combining a native **C++/CUDA paged KV-cache runtime**, **asynchronous Ray scheduling**, **continuous request batching**, and **analytical workload modeling** to maximize GPU utilization while eliminating VRAM fragmentation.
 
-NexusCache Engine is an enterprise-grade LLM serving infrastructure inspired by vLLM. It completely eliminates physical GPU VRAM external fragmentation using native C++/CUDA paged memory tables, manages multi-actor async request execution using **Ray**, and embeds custom mathematical/statistical models to optimize request queueing and VRAM saturation points under extreme concurrency.
+<br>
 
----
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
+![C++](https://img.shields.io/badge/C++-17-00599C?logo=cplusplus&logoColor=white)
+![CUDA](https://img.shields.io/badge/CUDA-12.0+-76B900?logo=nvidia&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
+![Ray](https://img.shields.io/badge/Ray-Distributed-028CF0?logo=ray&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-Apache--2.0-blue)
 
-## 💡 Key Architectural Accomplishments
-
-### ⚙️ AI/ML Systems Engineering Highlights
-
-* **Custom C++/CUDA Paged Memory Subsystem:** Built a low-latency native block allocator (`csrc/src/block_manager.cpp`) and virtual page table (`page_table.cpp`) coupled with custom CUDA kernels (`paged_attention_kernel.cu`, `memory_kernels.cu`) to eliminate VRAM fragmentation, increasing max serving batch size by **2.4× on 10GB VRAM**.
-* **Async Ray Execution & Dynamic Scheduling:** Engineered a high-throughput dynamic request scheduler (`nexuscache/server/dynamic_scheduler.py`) utilizing **Ray Actors** (`ray_actor.py`), achieving **92% sustained GPU utilization** under continuous request batching.
-* **Pinned Host-to-Device Allocation:** Implemented zero-copy pinned host memory (`pinned_memory.cpp`) to accelerate host-to-device context transfers and minimize PCIe bandwidth latency spikes.
-* **Containerized Stress Testing & CI:** Architected Docker container setups (`Dockerfile.gpu`, `docker-compose.yaml`) and automated memory profiling tools (`benchmarks/profile_memory.sh`) to guarantee zero memory leaks under stress.
-
-### 📊 Data Science & ML Modeling Highlights
-
-* **Low-Latency Async Data Streams:** Developed an asynchronous serving API processing concurrent streaming requests with **p95 response latency under 35ms**.
-* **Quantitative VRAM Saturation Modeling:** Built mathematical trace models (`vram_saturation_model.py`, `workload_model.py`) to accurately forecast GPU VRAM saturation thresholds based on input/output sequence length distribution curves.
-* **A/B Testing & Evaluation Framework:** Designed an automated experimental harness (`ab_testing_harness.py`, `ab_evaluator.py`) to systematically measure latency vs. throughput trade-offs across static and dynamic allocation strategies.
-* **Queueing Theory Optimization:** Applied time-series queueing theory (`queue_model.py`) to model incoming traffic distributions and optimize request queueing capacity during peak traffic spikes.
+</div>
 
 ---
 
-## 🏗 System Architecture & End-to-End Pipeline
+# Overview
 
-```mermaid
-flowchart TB
+Modern LLM serving systems are constrained by GPU memory fragmentation, inefficient request scheduling, and underutilized hardware during concurrent inference.
 
-A[API Server<br/>nexuscache/server]
+**NexusCache Engine** addresses these challenges through a production-oriented serving runtime that combines native CUDA memory management, asynchronous distributed scheduling, and analytical workload optimization into a unified inference pipeline.
 
-A -->|Async Stream / Request Queue| B
+Rather than focusing solely on model execution, NexusCache optimizes the infrastructure surrounding inference—GPU memory allocation, continuous batching, request scheduling, and runtime performance—to deliver higher throughput, lower latency, and improved GPU utilization under production workloads.
 
-subgraph B["NexusCache Serving Core"]
+---
 
-direction TB
+## ✨ Features
 
-subgraph C["Serving Engine"]
-    C1[Inference Engine]
-end
+- 🚀 Dynamic paged KV-cache with virtual page tables
+- ⚡ Native C++17 / CUDA memory management runtime
+- 🔄 Continuous asynchronous request batching using Ray Actors
+- 📦 Zero-copy pinned host memory allocation
+- 🧠 Custom paged attention CUDA kernels
+- 📊 VRAM saturation and workload modeling
+- 📈 Automated A/B benchmarking and latency analysis
+- 🐳 Docker-ready deployment and profiling environment
+- ✅ PyTorch-native C++ extensions via PyBind11
 
-subgraph D["Ray Scheduler"]
-    D1[Request Queue]
-    D2[Pipeline Manager]
-    D3[Dynamic Ray Actors]
-    D4[Metrics Engine]
-end
+---
 
-subgraph E["Analytics"]
-    E1[VRAM Saturation]
-    E2[Queue Modeling]
-    E3[A/B Evaluation]
-end
+## Why NexusCache?
 
-C --> F
-D --> F
-E --> F
+Large-scale LLM inference is increasingly limited by systems-level bottlenecks rather than model architecture itself. GPU memory fragmentation, dynamic request patterns, and scheduling overhead reduce serving efficiency long before compute resources are fully utilized.
 
-F["PyBind11 / C++ ABI"]
+NexusCache explores these challenges by combining:
 
-F --> G
+- Native CUDA memory management
+- Dynamic paged KV-cache allocation
+- Distributed asynchronous scheduling
+- Queueing theory and workload analytics
+- Production-grade benchmarking and telemetry
 
-subgraph G["Native Runtime (C++ / CUDA)"]
-    G1[Block Manager]
-    G2[Virtual Page Table]
-    G3[Pinned Memory Allocator]
-    G4[CUDA Memory Kernels]
-    G5[Paged Attention Kernels]
-end
+The result is a serving infrastructure designed to maximize GPU efficiency while remaining modular, extensible, and reproducible.
 
-end
+---
 
-G --> H["NVIDIA GPU VRAM"]
+# 📈 Performance
+
+Benchmarks were collected using synthetic and continuous request workloads with GPU telemetry and runtime profiling.
+
+| Metric | Result |
+|---------|-------:|
+| Peak GPU Utilization | **92%** |
+| p95 Response Latency | **<35 ms** |
+| Maximum Serving Batch Size | **2.4× Increase** |
+| External GPU Fragmentation | **≈0%** |
+| Memory Allocation Strategy | **Dynamic Paged KV Cache** |
+
+### Core Optimizations
+
+| Component | Optimization |
+|-----------|--------------|
+| **Memory Runtime** | Dynamic paged block allocator with virtual page tables |
+| **CUDA Kernels** | Custom paged attention and memory management kernels |
+| **Request Scheduling** | Ray Actor continuous batching |
+| **Host ↔ GPU Transfers** | Zero-copy pinned host memory |
+| **Analytics Engine** | Queueing theory, VRAM forecasting, and A/B evaluation |
+
+---
+
+## Table of Contents
+
+- System Architecture
+- Repository Structure
+- Technology Stack
+- Installation
+- Quick Start
+- Benchmarking
+- Deployment
+- Roadmap
+- Contributing
+- License
+
+---
+# 🏗️ System Architecture
+
+NexusCache Engine separates high-level serving logic from low-level GPU memory management through a modular layered architecture. Python orchestrates distributed request execution, while performance-critical operations execute inside native C++/CUDA extensions.
+
+```text
+                                  NexusCache Engine
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                  High-Performance LLM Serving Infrastructure                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                     Async Requests / Streaming API
+                                      │
+                                      ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Python Serving Runtime                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ FastAPI │ Continuous Batching │ Request Queue │ Pipeline Manager │ Metrics │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                    Distributed Scheduling via Ray Actors
+                                      │
+                                      ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          Native Compute Runtime                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Dynamic Block Allocator │ Virtual Page Table │ Pinned Memory │ CUDA Kernels │
+│                 Paged Attention │ Memory Manager │ PyBind11 ABI             │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+                           NVIDIA GPU Memory (VRAM)
 ```
 
 ---
 
-## 📁 Repository Structure
+## Runtime Components
+
+| Layer | Responsibility |
+|--------|----------------|
+| **Serving Runtime** | FastAPI endpoints, continuous batching, streaming responses, request lifecycle |
+| **Ray Scheduler** | Distributed actor execution, asynchronous scheduling, workload balancing |
+| **Native Runtime** | Dynamic page allocation, CUDA kernels, pinned memory management |
+| **Analytics Engine** | Queueing theory, VRAM forecasting, workload analysis, A/B benchmarking |
+| **Benchmark Suite** | Stress testing, latency profiling, GPU telemetry, throughput evaluation |
+
+---
+
+# ⚙️ Core Engineering Concepts
+
+NexusCache Engine is built around several low-level systems optimizations commonly found in production LLM serving infrastructure.
+
+## Dynamic Paged KV-Cache
+
+Instead of allocating large contiguous KV-cache regions, memory is divided into fixed-size pages managed through virtual page tables.
+
+### Benefits
+
+- Eliminates GPU memory fragmentation
+- Enables efficient memory reuse
+- Supports dynamic sequence growth
+- Improves serving batch capacity
+- Reduces allocation overhead
+
+---
+
+## Continuous Request Batching
+
+Incoming requests are grouped dynamically instead of executing independently.
+
+```text
+Traditional Serving
+
+Request 1 ─────► GPU
+Request 2 ─────► GPU
+Request 3 ─────► GPU
+
+Low GPU Utilization
+```
+
+↓
+
+```text
+NexusCache
+
+Incoming Requests
+        │
+        ▼
+Continuous Request Queue
+        │
+        ▼
+Dynamic Batch Scheduler
+        │
+        ▼
+Single GPU Execution
+
+High GPU Utilization
+```
+
+---
+
+## Native CUDA Runtime
+
+Performance-critical operations execute entirely inside native C++/CUDA extensions.
+
+Key optimizations include:
+
+- Dynamic block allocation
+- Virtual page table management
+- Zero-copy pinned host memory
+- Custom paged attention kernels
+- Memory-aware allocation strategies
+- PyBind11 native operator bindings
+
+---
+
+## Analytical Workload Engine
+
+Beyond serving, NexusCache includes analytical models for understanding runtime behavior.
+
+Capabilities include:
+
+- VRAM saturation prediction
+- Queueing theory simulation
+- Sequence length distribution analysis
+- Latency vs throughput A/B evaluation
+- Workload forecasting under peak traffic
+
+---
+
+# 📂 Repository Structure
 
 ```text
 .
@@ -152,37 +295,197 @@ G --> H["NVIDIA GPU VRAM"]
 ├── pyproject.toml                  # Python Build Configuration
 ├── setup.py                        # C++/CUDA PyTorch Setuptools Installer
 └── README.md
+```
 
-🛠️ Quickstart & Local Setup
+---
 
-1. Environment Preparation
+## Module Overview
 
-Activate your Python environment containing PyTorch (with CUDA support):
-git clone [https://github.com/BAHAA00111/NexusCache-Engine.git](https://github.com/BAHAA00111/NexusCache-Engine.git)
+| Module | Responsibility |
+|---------|----------------|
+| **csrc/** | Native C++17/CUDA runtime, page allocator, memory subsystem and PyBind11 bindings |
+| **server/** | FastAPI serving layer, continuous batching, Ray scheduling and execution pipeline |
+| **analytics/** | Queueing theory, VRAM forecasting, workload modeling and A/B evaluation |
+| **benchmarks/** | Load generation, GPU telemetry, latency and throughput profiling |
+| **tests/** | Native C++ validation, Python integration tests and scheduler correctness |
+
+---
+
+# 🛠️ Technology Stack
+
+| Category | Technologies |
+|-----------|--------------|
+| Runtime | Python, C++17 |
+| GPU Computing | CUDA, PyTorch |
+| Native Bindings | PyBind11 |
+| Distributed Systems | Ray |
+| API | FastAPI |
+| Build System | CMake, setuptools |
+| Deployment | Docker |
+| Profiling | NVIDIA Nsight Compute |
+
+---
+# 🚀 Installation
+
+## Requirements
+
+- Python **3.10+**
+- CUDA **12.0+**
+- PyTorch **2.x**
+- NVIDIA GPU with CUDA support
+- CMake **3.20+**
+
+Clone the repository:
+
+```bash
+git clone https://github.com/BAHAA00111/NexusCache-Engine.git
+
 cd NexusCache-Engine
-source torch_env/bin/activate
+```
 
-2. Build C++ / CUDA Extension (_C.so)
+Create and activate a virtual environment:
 
-Compile the native extensions directly into the nexuscache/ directory:
-NO_CUDA_EXT=0 python3 setup.py build_ext --inplace
+```bash
+python -m venv .venv
 
-Verify build success:
-python3 -c "import nexuscache._C as _C; print('Native C++/CUDA Engine Built Successfully!')"
+# Linux / macOS
+source .venv/bin/activate
 
-3. Run Unit Tests
+# Windows
+# .venv\Scripts\activate
+```
 
-Execute the full suite of Python and subsystem tests:
-pytest tests/python/
+Install dependencies:
 
-4. Benchmark & Profiling Telemetry
+```bash
+pip install --upgrade pip
 
-Run the memory and request profiler against the engine using Docker:
-CONTAINER_ENGINE=docker bash benchmarks/profile_memory.sh \
---concurrency 32 \
---num-requests 100 \
---url http://localhost:8000/v1/chat/completions
+pip install -e .
+```
 
-📜 License
+---
 
-This project is licensed under the Apache 2.0 License. See the LICENSE file for details.
+# ⚙️ Build Native CUDA Runtime
+
+Compile the C++/CUDA extension.
+
+```bash
+NO_CUDA_EXT=0 python setup.py build_ext --inplace
+```
+
+Verify the installation:
+
+```bash
+python -c "import nexuscache._C as _C; print('Native Runtime Loaded Successfully')"
+```
+
+---
+
+# ⚡ Quick Start
+
+## Launch the API Server
+
+```bash
+python -m nexuscache.server.api_server
+```
+
+---
+
+## Execute the Test Suite
+
+Run all Python integration tests.
+
+```bash
+pytest tests/python -v
+```
+
+Run native C++ tests.
+
+```bash
+ctest --output-on-failure
+```
+
+---
+
+## Benchmark the Runtime
+
+Execute the built-in load generator.
+
+```bash
+python benchmarks/load_generator.py
+```
+
+Profile GPU memory behavior.
+
+```bash
+bash benchmarks/profile_memory.sh \
+    --concurrency 32 \
+    --num-requests 100 \
+    --url http://localhost:8000/v1/chat/completions
+```
+
+Evaluate allocation strategies.
+
+```bash
+python benchmarks/static_vs_dynamic_benchmark.py
+```
+
+---
+
+# 🐳 Docker Deployment
+
+Build the GPU container.
+
+```bash
+docker build -t nexuscache-engine .
+```
+
+Run the serving runtime.
+
+```bash
+docker run \
+    --gpus all \
+    -p 8000:8000 \
+    nexuscache-engine
+```
+
+For distributed deployments, Docker Compose configurations are provided under the **benchmarks/** directory.
+
+---
+
+
+# 📚 Technology References
+
+NexusCache Engine draws inspiration from modern LLM serving and GPU runtime systems, including:
+
+- vLLM
+- Ray
+- PyTorch
+- CUDA
+- PyBind11
+- FastAPI
+- NVIDIA Nsight Compute
+
+---
+
+# 📄 License
+
+Licensed under the **Apache License 2.0**.
+
+See the [LICENSE](LICENSE) file for additional information.
+
+---
+
+<div align="center">
+
+## ⭐ Support the Project
+
+If you find **NexusCache Engine** useful, consider giving the repository a **Star**.
+
+Your support helps improve project visibility and encourages continued development.
+
+---
+
+**Built for scalable, high-throughput, and production-ready LLM serving.**
+
+</div>
