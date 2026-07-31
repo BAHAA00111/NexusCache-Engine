@@ -472,8 +472,6 @@ NexusCache Engine draws inspiration from modern LLM serving and GPU runtime syst
 
 Licensed under the **Apache License 2.0**.
 
-See the [LICENSE](LICENSE) file for additional information.
-
 ---
 
 <div align="center">
