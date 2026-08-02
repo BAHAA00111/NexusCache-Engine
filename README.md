@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ NexusCache Engine
+# NexusCache Engine
 
 ### Production-Ready Dynamic Paged KV-Cache Runtime for High-Throughput LLM Serving
 
